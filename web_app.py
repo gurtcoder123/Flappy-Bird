@@ -160,10 +160,14 @@ def forgot_password():
     reset_token = get_database().request_password_reset(email)
     if reset_token:
         try:
-            get_email_service().send_password_reset_email(email, reset_token)
-            return jsonify({'success': True, 'message': 'Password reset email sent!'})
-        except:
-            return jsonify({'success': False, 'message': 'Failed to send reset email'})
+            email_sent = get_email_service().send_password_reset_email(email, reset_token)
+            if email_sent:
+                return jsonify({'success': True, 'message': 'Password reset email sent!'})
+            else:
+                return jsonify({'success': False, 'message': 'Failed to send reset email. Please check server logs for details.'})
+        except Exception as e:
+            print(f"Password reset email error: {str(e)}")
+            return jsonify({'success': False, 'message': f'Email service error: {str(e)}'})
     else:
         return jsonify({'success': False, 'message': 'Email not found or not verified'})
 
@@ -223,7 +227,17 @@ def history():
     if 'user' not in session:
         return jsonify({'success': False, 'message': 'Login required'})
     
-    user_history = get_database().get_user_history(session['user']['id'])
+    user_history_raw = get_database().get_user_history(session['user']['id'])
+    
+    # Convert tuples to objects for frontend
+    user_history = []
+    for row in user_history_raw:
+        user_history.append({
+            'score': row[0],
+            'play_time': row[1],
+            'played_at': row[2]
+        })
+    
     return jsonify({'success': True, 'history': user_history})
 
 
@@ -256,15 +270,24 @@ def unlock_character():
     if character_id is None:
         return jsonify({'success': False, 'message': 'Character ID required'})
     
+    # Get current coins from database (source of truth)
+    current_coins = get_database().get_user_coins(session['user']['id'])
+    
+    print(f"[UNLOCK DEBUG] User {session['user']['username']} trying to unlock character {character_id}")
+    print(f"[UNLOCK DEBUG] Cost: {cost}, Current coins: {current_coins}")
+    
     # Check if user has enough coins
-    if session['user']['coins'] < cost:
+    if current_coins < cost:
+        print(f"[UNLOCK DEBUG] Not enough coins: {current_coins} < {cost}")
         return jsonify({'success': False, 'message': 'Not enough coins'})
+    
+    print(f"[UNLOCK DEBUG] Sufficient coins, proceeding with unlock")
     
     try:
         # Deduct coins
-        new_coins = session['user']['coins'] - cost
+        new_coins = current_coins - cost
         get_database().update_user_coins(session['user']['id'], new_coins)
-        session['user']['coins'] = new_coins
+        session['user']['coins'] = new_coins  # Update session
         
         # Unlock character
         get_database().unlock_character(session['user']['id'], character_id)

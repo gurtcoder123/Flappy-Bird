@@ -42,10 +42,24 @@ RED = (255, 0, 0)
 BLUE = (0, 0, 255)
 
 # Email Settings
-SMTP_SERVER = "smtp.gmail.com"
-SMTP_PORT = 587
-EMAIL_ADDRESS = os.getenv("EMAIL_ADDRESS", "noreply@flappybird.com")
+# Support multiple email providers
+EMAIL_ADDRESS = os.getenv("EMAIL_ADDRESS", "noreply@jumpybird.com")
 EMAIL_PASSWORD = os.getenv("EMAIL_PASSWORD", "default_password")
+
+# Auto-detect SMTP settings based on email provider
+if EMAIL_ADDRESS.endswith("@gmail.com"):
+    SMTP_SERVER = "smtp.gmail.com"
+    SMTP_PORT = 587
+elif EMAIL_ADDRESS.endswith("@outlook.com") or EMAIL_ADDRESS.endswith("@hotmail.com"):
+    SMTP_SERVER = "smtp-mail.outlook.com"  
+    SMTP_PORT = 587
+elif EMAIL_ADDRESS.endswith("@yahoo.com"):
+    SMTP_SERVER = "smtp.mail.yahoo.com"
+    SMTP_PORT = 587
+else:
+    # Default to Gmail settings, can be overridden with environment variables
+    SMTP_SERVER = os.getenv("SMTP_SERVER", "smtp.gmail.com")
+    SMTP_PORT = int(os.getenv("SMTP_PORT", "587"))
 
 # Font Settings
 FONT_SIZE_LARGE = 48

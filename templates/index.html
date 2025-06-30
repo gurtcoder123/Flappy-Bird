@@ -509,10 +509,12 @@
             background: white;
             padding: 30px;
             border: 3px solid #000;
-            max-width: 600px;
-            max-height: 500px;
+            max-width: 700px;
+            max-height: 80vh;
             overflow-y: auto;
             font-family: 'Courier New', monospace;
+            border-radius: 10px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
         }
 
         .modal-header {
@@ -523,15 +525,47 @@
         }
 
         .history-item, .leaderboard-item {
-            padding: 10px;
-            border-bottom: 1px solid #ccc;
+            padding: 15px;
+            margin-bottom: 10px;
+            border: 2px solid #000;
+            background: #f8f8f8;
             display: flex;
             justify-content: space-between;
+            align-items: center;
+            border-radius: 5px;
+        }
+
+        .leaderboard-item:hover {
+            background: #e8e8e8;
+        }
+
+        .history-item:hover {
+            background: #e8e8e8;
         }
 
         .rank {
             font-weight: bold;
             color: #FFD700;
+            background: #2c2c2c;
+            padding: 5px 10px;
+            border-radius: 3px;
+        }
+
+        .player-name {
+            font-size: 18px;
+            font-weight: bold;
+            margin-left: 10px;
+        }
+
+        .player-score {
+            font-size: 16px;
+            color: #4285f4;
+            font-weight: bold;
+        }
+
+        .medal {
+            font-size: 20px;
+            margin-right: 8px;
         }
         
         .character-selection {
@@ -1643,19 +1677,29 @@
             `;
 
             if (history.length === 0) {
-                historyHTML += '<p>No games played yet!</p>';
+                historyHTML += '<p style="text-align: center; color: #666;">No games played yet!</p>';
             } else {
                 history.forEach((game, index) => {
                     const date = new Date(game.played_at).toLocaleDateString();
                     const time = new Date(game.played_at).toLocaleTimeString();
+                    const scoreColor = game.score >= 20 ? '#4CAF50' : game.score >= 10 ? '#FF9800' : '#666';
                     historyHTML += `
                         <div class="history-item">
                             <div>
-                                <strong>Score: ${game.score}</strong><br>
-                                <small>${date} ${time}</small>
+                                <div style="font-size: 18px; font-weight: bold; color: ${scoreColor};">
+                                    Score: ${game.score}
+                                </div>
+                                <div style="color: #666; font-size: 14px; margin-top: 5px;">
+                                    ${date} at ${time}
+                                </div>
                             </div>
-                            <div>
-                                Play Time: ${game.play_time}s
+                            <div style="text-align: right;">
+                                <div style="font-weight: bold; color: #4285f4;">
+                                    ${Math.floor(game.play_time / 60)}:${(game.play_time % 60).toString().padStart(2, '0')}
+                                </div>
+                                <div style="color: #666; font-size: 12px;">
+                                    play time
+                                </div>
                             </div>
                         </div>
                     `;
@@ -1687,18 +1731,20 @@
             `;
 
             if (leaderboard.length === 0) {
-                leaderboardHTML += '<p>No scores recorded yet!</p>';
+                leaderboardHTML += '<p style="text-align: center; color: #666;">No scores recorded yet!</p>';
             } else {
                 leaderboard.forEach((player, index) => {
-                    const rankClass = index < 3 ? 'rank' : '';
                     const medal = index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : '';
+                    const rankDisplay = index < 3 ? `<span class="rank">#${index + 1}</span>` : `<span style="font-weight: bold;">#${index + 1}</span>`;
                     leaderboardHTML += `
-                        <div class="leaderboard-item ${rankClass}">
-                            <div>
-                                ${medal} #${index + 1} ${player[0]}
+                        <div class="leaderboard-item">
+                            <div style="display: flex; align-items: center;">
+                                <span class="medal">${medal}</span>
+                                ${rankDisplay}
+                                <span class="player-name">${player[0]}</span>
                             </div>
-                            <div>
-                                <strong>${player[1]} points</strong>
+                            <div class="player-score">
+                                ${player[1]} points
                             </div>
                         </div>
                     `;

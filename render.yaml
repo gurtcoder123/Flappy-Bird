@@ -1,0 +1,13 @@
+# Render configuration for Jumpy Bird
+services:
+  - type: web
+    name: flappy-bird
+    env: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: python run_app.py
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.0
+      - key: REPLIT_DEPLOYMENT
+        value: "1"
+    autoDeploy: false
